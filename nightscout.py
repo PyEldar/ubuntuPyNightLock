@@ -5,7 +5,7 @@ class Nightscout:
         self.api = NightscoutApiProtocol(url + '/api/v1/', timeout=5)
 
     def get_last_entry(self):
-        return self.api.get('entries.json')
+        return self.api.get('entries/current.json')
 
-    def get_entries_since(self, timestamp=None):
-        return self.api.get('entries.json', params={'find[date][$gt]': timestamp})
+    def get_entries_since(self, timestamp=None, count=30, entry_type=None):
+        return self.api.get('entries.json', params={'find[date][$gt]': timestamp, 'count': count, 'find[type]': entry_type})
