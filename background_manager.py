@@ -23,7 +23,7 @@ class Manager:
         self.notification = Notify.Notification.new('Waiting for data')
 
     def update_entries(self):
-        logging.info('updatine entries')
+        logging.debug('updatine entries')
         last_entry = self.entries[-1].get('date') if self.entries else None
         new_entries = sorted(self.nightscout.get_entries_since(timestamp=last_entry, entry_type='sgv'), key=lambda k: k['date'])
         logging.debug('got {} new entries'.format(len(new_entries)))
@@ -39,7 +39,7 @@ class Manager:
         self.notification.show()
 
     def generate_files(self):
-        logging.info('generating files')
+        logging.debug('generating files')
 
         bgs = [(int(item['sgv']) / 18) for item in self.entries if item.get('sgv') and item.get('date')]
         datetimes = [datetime.datetime.fromtimestamp(item['date'] / 1000).strftime('%H:%M') for item in self.entries if item.get('sgv') and item.get('date')]
@@ -54,21 +54,30 @@ class Manager:
         fig.savefig(self.lockscreen)
         plt.close(fig)
 
+    def get_sleep_time(self):
+        waiting_period = 315
+        last_timestamp = self.entries[-1].get('date') / 1000
+        now_timestamp = int(time.time())
+        sleep_time = waiting_period - (now_timestamp - last_timestamp)
+        return sleep_time
+
     def run(self, update_interval=100):
         while True:
             try:
                 if self.update_entries():
                     self.update_and_show_notification()
                     self.generate_files()
+                    sleep_time = self.get_sleep_time()
+                    logging.debug('sleeping for {} seconds'.format(sleep_time))
+                    time.sleep(sleep_time)
+                else:
+                    time.sleep(20)
             except (Timeout, NightscoutCommunicationException):
                 logging.error('Connection error', exc_info=True)
                 time.sleep(10)
-                continue
-            logging.info('sleeping for {} seconds'.format(update_interval))
-            time.sleep(update_interval)
 
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='log', format='%(asctime)s - %(message)s')
+    logging.basicConfig(filename='log', filemode='a', format='%(asctime)s - %(message)s', level=logging.DEBUG)
     man = Manager('http://gotrade.ml:8088', '/usr/share/backgrounds/warty-final-ubuntu.png', '/usr/share/backgrounds/warty-final-ubuntu.png')
     man.run(50)
