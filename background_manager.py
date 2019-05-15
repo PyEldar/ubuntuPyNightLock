@@ -1,6 +1,7 @@
 import time
 import logging
 import datetime
+from collections import deque
 
 import matplotlib
 matplotlib.use('Agg')
@@ -16,7 +17,7 @@ class Manager:
         self.nightscout = Nightscout(nightscout_url)
         self.background = background_location
         self.lockscreen = lockscreen_location
-        self.entries = list()
+        self.entries = deque(maxlen=30)
         self.resolution = (1920, 1080)
         self.dpi = 96
         Notify.init('background_manager')
@@ -34,7 +35,7 @@ class Manager:
         num_of_entries = 6
         last_time = datetime.datetime.fromtimestamp(self.entries[-1].get('date') / 1000).strftime('%H:%M')
         label_text = '{bg} - {time}'.format(bg=round(self.entries[-1].get('sgv', 0) / 18, 1), time=last_time)
-        body_text = ' --> '.join([str(round(entry.get('sgv', 0) / 18, 1)) for entry in self.entries[-(min(num_of_entries, len(self.entries))):]])
+        body_text = ' --> '.join([str(round(entry.get('sgv', 0) / 18, 1)) for entry in list(self.entries)[-(min(num_of_entries, len(self.entries))):]])
         self.notification.update(label_text, body_text)
         self.notification.show()
 
