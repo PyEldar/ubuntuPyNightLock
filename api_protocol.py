@@ -1,7 +1,7 @@
 import logging
 
 import requests
-from requests.exceptions import Timeout, RequestException
+from requests.exceptions import RequestException
 
 
 class NightscoutApiProtocol:
@@ -16,10 +16,9 @@ class NightscoutApiProtocol:
         try:
             r = requests.get(self.base_url + resource, params=params, timeout=timeout)
             logging.debug('GET request to {} returned with status code {}'.format(r.url, r.status_code))
-        except Timeout:
-            raise Timeout()
+
         except RequestException:
-            raise NightscoutCommunicationException()
+            raise NightscoutCommunicationException('GET request to {} failed with connection error'.format(r.url))
 
         return r.json()
 

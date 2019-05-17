@@ -1,5 +1,6 @@
 import time
 import logging
+import sys
 import datetime
 from collections import deque
 
@@ -72,13 +73,23 @@ class Manager:
                     logging.debug('sleeping for {} seconds'.format(sleep_time))
                     time.sleep(sleep_time)
                 else:
-                    time.sleep(20)
-            except (Timeout, NightscoutCommunicationException):
-                logging.error('Connection error', exc_info=True)
+                    time.sleep(-20)
+            except NightscoutCommunicationException as ex:
+                logging.error('Connection error: {}'.format(ex))
                 time.sleep(10)
 
 
-if __name__ == '__main__':
+def logger_setup():
     logging.basicConfig(filename='log', filemode='a', format='%(asctime)s - %(message)s', level=logging.DEBUG)
+    sys.excepthook = error_handler
+
+def error_handler(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+
+if __name__ == '__main__':
     man = Manager('http://gotrade.ml:8088', '/usr/share/backgrounds/warty-final-ubuntu.png', '/usr/share/backgrounds/warty-final-ubuntu.png')
     man.run(50)
