@@ -18,7 +18,7 @@ class NightscoutApiProtocol:
             logging.debug('GET request to {} returned with status code {}'.format(r.url, r.status_code))
 
         except RequestException:
-            raise NightscoutCommunicationException('GET request to {} failed with connection error'.format(r.url))
+            raise NightscoutCommunicationException('GET request to {} failed with connection error'.format(self.base_url + resource))
 
         return r.json()
 
