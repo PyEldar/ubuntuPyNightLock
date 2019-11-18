@@ -88,13 +88,6 @@ class Manager:
 
 def logger_setup():
     logging.basicConfig(filename='log', filemode='a', format='%(asctime)s - %(message)s', level=logging.DEBUG)
-    sys.excepthook = error_handler
-
-def error_handler(exc_type, exc_value, exc_traceback):
-    if issubclass(exc_type, KeyboardInterrupt):
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
-    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 import configparser
 
 config = configparser.ConfigParser()
-config.read('/home/pavlikj/ubuntuPyNightLock/config.ini')
+config.read('/home/pi/ubuntuPyNightLock/config.ini')
 
 manager = config['Manager']
 nightscout = config['Nightscout']
