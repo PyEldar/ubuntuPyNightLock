@@ -1,13 +1,12 @@
 import time
 import logging
-import sys
 import datetime
 from collections import deque
 
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from gi.repository import Notify
+from gi.repository import Notify, GLib
 
 from config import display as display_conf
 from config import manager as manager_conf
@@ -41,7 +40,10 @@ class Manager:
         label_text = '{bg} - {time}'.format(bg=round(self.entries[-1].get('sgv', 0) / 18, 1), time=last_time)
         body_text = ' --> '.join([str(round(entry.get('sgv', 0) / 18, 1)) for entry in list(self.entries)[-(min(num_of_entries, len(self.entries))):]])
         self.notification.update(label_text, body_text)
-        self.notification.show()
+        try:
+            self.notification.show()
+        except GLib.Error:
+            logging.exception("Unable to show notification due to error: ")
 
     def generate_data(self):
         logging.debug('generating data')
