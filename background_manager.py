@@ -11,7 +11,7 @@ from gi.repository import Notify, GLib
 from config import display as display_conf
 from config import manager as manager_conf
 from config import plot as plot_conf
-from api_protocol import NightscoutCommunicationException
+from api_protocol import NightscoutCommunicationException, NightscoutNonJsonResponseException
 from nightscout import Nightscout
 
 class Manager:
@@ -39,6 +39,9 @@ class Manager:
         last_time = datetime.datetime.fromtimestamp(self.entries[-1].get('date') / 1000).strftime('%H:%M')
         label_text = '{bg} - {time}'.format(bg=round(self.entries[-1].get('sgv', 0) / 18, 1), time=last_time)
         body_text = ' --> '.join([str(round(entry.get('sgv', 0) / 18, 1)) for entry in list(self.entries)[-(min(num_of_entries, len(self.entries))):]])
+        self.show_notification(label_text, body_text)
+
+    def show_notification(self, label_text, body_text):
         self.notification.update(label_text, body_text)
         try:
             self.notification.show()
@@ -86,6 +89,11 @@ class Manager:
             except NightscoutCommunicationException as ex:
                 logging.error('Connection error: {}'.format(ex))
                 time.sleep(10)
+
+            except NightscoutNonJsonResponseException as ex:
+                logging.error('Non JSON response from nightscout: {}'.format(ex))
+                self.show_notification("Nightscout non JSON response", "Waiting 10 mins before retrying, check the nightscout service")
+                time.sleep(600)
 
 
 def logger_setup():
